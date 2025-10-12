@@ -16,7 +16,7 @@ Below is a simple example showing how to generate an SOS polynomial and verify i
 
 ```python
 # Import required functions
-from generate_SOS import general_sos, make_proj_vector_space_SOS, auxiliary
+from generate_SOS import general_sos, make_proj_vector_space_SOS, project_to_linear_space, auxiliary
 from projection import HIP_switch
 
 # Ensure a SOS polynomial in 2 variables of degree 4 with 3 terms
