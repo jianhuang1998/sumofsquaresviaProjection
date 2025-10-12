@@ -29,4 +29,4 @@ proj_vector_space_V = make_proj_vector_space_SOS(indices_matrix, nb_parts)
 proj_0_on_V = project_to_linear_space(zeros((dim, dim)), g, indices_matrix, nb_parts)
 
 # Verify the SOS polynomial using the HIP_switch projection method
-data, nlevs = HIP_switch(proj_0_on_V, proj_vector_space_V, proj_0_on_V, max_iter=1000, tol=1e-8)
+data, nlevs = HIP_switch(proj_0_on_V, proj_vector_space_V, proj_0_on_V, maxiter=1000, tol=1e-8)
