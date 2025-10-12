@@ -19,7 +19,7 @@ Below is a simple example showing how to generate an SOS polynomial and verify i
 from generate_SOS import general_sos, make_proj_vector_space_SOS, auxiliary
 from projection import HIP_switch
 
-# Make sure a SOS polynomial in 2 variables of degree 4 with 3 terms
+# Ensure a SOS polynomial in 2 variables of degree 4 with 3 terms
 basis1, basis2, d1, d2, indices_matrix, nb_parts = auxiliary(n=2, d=2)
 dim = len(indices_matrix)
 g, _, Q = general_sos(n=2, d=2, qty=3)
