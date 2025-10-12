@@ -22,7 +22,7 @@ from projection import HIP_switch
 # Make sure a SOS polynomial in 2 variables of degree 4 with 3 terms
 basis1, basis2, d1, d2, indices_matrix, nb_parts = auxiliary(n=2, d=2)
 dim = len(indices_matrix)
-g, _, Q = general_sos(n=2, d=2, qty_terms=3)
+g, _, Q = general_sos(n=2, d=2, qty=3)
 
 # Construct the projection operator onto the affine subspace V(f)
 proj_vector_space_V = make_proj_vector_space_SOS(indices_matrix, nb_parts)
