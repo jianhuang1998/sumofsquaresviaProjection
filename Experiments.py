@@ -12,7 +12,7 @@ class ExperimentResult(tb.IsDescription):
     End_iterater = tb.Int32Col()
 
 
-def Experiment_dimension_rank(filename, poly_set, projection, Ex_times=100, maxiter=500):
+def Experiment_dimension_rank(filename, poly_set, projections, Ex_times=100, maxiter=500):
     """
     Conduct comprehensive experiments to evaluate different projection-based algorithms
     for verifying sum-of-squares (SOS) polynomials under various configurations.
@@ -25,7 +25,7 @@ def Experiment_dimension_rank(filename, poly_set, projection, Ex_times=100, maxi
         A list specifying the configurations of the SOS polynomials to be tested.
         Each tuple should contain (n, d, q), where `n` is the number of variables,
         `d` is the polynomial degree, and `q` is the number of SOS terms.
-    projection : list of str
+    projections : list of str
         The projection algorithms defined in `projection.py` to be evaluated.
     Ex_times : int
         Number of repeated tests for each polynomial configuration and each projection algorithm.
@@ -35,15 +35,21 @@ def Experiment_dimension_rank(filename, poly_set, projection, Ex_times=100, maxi
     Returns
     -------
     None
-        This function does not return any value. 
-        It generates and saves a result file containing all experimental outcomes.
+        This function does not return any value.
 
+        It generates and saves a result file summarizing the performance of the tests. 
+        The saved file includes:
+
+        - The number of tests that successfully found the Gram matrix.
+        - CPU time for each test.
+        - Number of iterations in each test.
+        - The matrices obtained in each iteration.
     Examples
     --------
     >>> create_filename = "20250916_effect_of_rank"
     >>> poly_set = [(10, 4, 1), (10, 4, 2), (10, 4, 3)]
-    >>> projection = ["APTR", "lazyAP", "APFR", "lazyAPFR"]
-    >>> Experiment_dimension_rank(create_filename, poly_set, projection,
+    >>> projections = ["APTR", "lazyAP", "APFR", "lazyAPFR"]
+    >>> Experiment_dimension_rank(create_filename, poly_set, projections,
     ...                           Ex_times=100, maxiter=1000)
     """    
     file = tb.open_file(filename, mode="w")
@@ -61,7 +67,7 @@ def Experiment_dimension_rank(filename, poly_set, projection, Ex_times=100, maxi
 
         all_g = [general_sos(poly_var, poly_deg, poly_term, indices_matrix) for _ in range(Ex_times)] 
         coeff_SOS = file.create_vlarray(poly_group, f"coeff_SOS{poly_var}_{poly_deg}_{poly_term}", tb.Float64Atom())
-        for proj in projection:
+        for proj in projections:
             table = file.create_table(group, f"{proj}_table_results", ExperimentResult, f"{proj} table result")
             if proj == "MOSEK":
                 pass
