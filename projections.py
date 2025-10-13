@@ -1,16 +1,39 @@
 """
-Available projection methods for verifying SOS polynomials:
+Projection-based methods for verifying SOS polynomials.
 
-* 'HIP_switch'           : Hyperplane Intersection Projection (HIP) with switching mode between pure HIP and alternating projection (AP).
-* 'oneHIP_AP'            : Combination of HIP and AP; performs a few HIP steps followed by AP steps.
-* 'pureHIP'              : Pure HIP method without switching or AP.
-* 'AP_rank_nlev'         : Alternating Projection with truncated rank (APTR).
-* 'lazy_AP_rank_nlev'    : Extrapolated version of APTR (extraAPTR).
-* 'AP_fixed_rank_beta'   : Alternating Projection with fixed rank (APFR).
+Available methods:
+* 'HIP_switch'             : Hyperplane Intersection Projection (HIP) with mode switching between pure HIP and alternating projection (AP).
+* 'oneHIP_AP'              : Hybrid approach; performs a few HIP steps followed by AP steps.
+* 'pureHIP'                : Pure HIP method without switching or AP.
+* 'AP_rank_nlev'           : Alternating Projection with truncated rank (APTR).
+* 'lazy_AP_rank_nlev'      : Extrapolated version of APTR (extraAPTR).
+* 'AP_fixed_rank_beta'     : Alternating Projection with fixed rank (APFR).
 * 'lazy_AP_fixed_rank_beta': Extrapolated version of APFR (extraAPFR).
-* 'mosek'                : Semidefinite programming solver Mosek for SOS verification.
-"""
+* 'mosek'                  : Semidefinite programming solver Mosek.
 
+This function implements a projection scheme to verify whether a polynomial
+is SOS by solving the semidefinite feasibility problem via iterative projections.
+
+Parameters
+----------
+p : numpy.ndarray
+    Initial matrix to start the iteration.
+proj_vector_space_V : callable
+    Operator to compute the projection onto the subspace.
+proj_0_on_V : numpy.ndarray
+    Projection of the zero matrix onto the affine set, used with 'proj_vector_space_V'.
+max_iter : int
+    Maximum number of iterations.
+tol : float
+    Convergence tolerance for the negative of the smallest eigenvalue (always non-negative).
+
+Returns
+-------
+ps : list of numpy.ndarray
+    Sequence of matrices at each iteration.
+nlevs : list of float
+    Sequence of negative smallest eigenvalues of matrices at each iteration.
+"""
 import numpy as N#function necessary
 import scipy as S
 import scipy.linalg as SL
