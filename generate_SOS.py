@@ -19,6 +19,41 @@ import math
 from numpy import *
 
 def project_to_linear_space(Q, g, indices_matrix, nb_parts,full = None):
+    """
+    Project a given symmetric matrix Q onto the affine subspace V(f) 
+    defined by the coefficient constraints of a sum-of-squares (SOS) polynomial.
+
+    This function computes the orthogonal projection of the input matrix `Q` 
+    onto the affine subspace corresponding to the SOS polynomial, as defined by 
+    the linear equality constraints ⟨Q, B_α⟩ = f_α. 
+    It serves as a core component in verifying SOS polynomial conditions via projection-based methods.
+
+    Parameters
+    ----------
+    Q : numpy.ndarray
+        The symmetric matrix to be projected.
+    g : numpy.ndarray
+        The vector of coefficients corresponding to the SOS polynomial.
+    indices_matrix : numpy.ndarray
+        The index mapping that encodes the linear relationships among polynomial coefficients.
+    nb_parts : int
+        The number of partitions used for averaging in the projection process.
+    full : bool, optional, default=False
+        If True, returns both the symmetrized projected matrix and the residual term. 
+        If False, only the projected matrix is returned.
+
+    Returns
+    -------
+    numpy.ndarray
+        The projected (symmetrized) matrix Q.
+    numpy.ndarray, optional
+        The residual vector, returned only if `full=True`.
+
+    Notes
+    -----
+    The affine subspace V(f) is defined as:
+        V(f) = { Q ∈ S^{s(n,d)} | ⟨Q, B_α⟩ = f_α, ∀ α ∈ N_{2d}^n }.
+    """
     BQ = np.zeros_like(g)
     for i, row in enumerate(indices_matrix):# Never twice the same index on a row
         BQ[row] += Q[i]
@@ -145,8 +180,49 @@ def sos_from_polynoms_to_be_squared(list_coeffs_basis1, indices_matrix, weights=
         return BQ
 
 
-def general_sos(n, d, qty, indices_matrix,
-                full=False):  # qty: The number of polynomials that sum of square is SOS-polynomial.
+def general_sos(n, d, qty, indices_matrix, full=False):
+    """
+    Generate random sum-of-squares (SOS) polynomials and their associated coefficient matrix.
+
+    This function constructs SOS polynomials in n variables and degree 2d by
+    randomly generating quadratic forms. Each polynomial is represented by
+    a coefficient vector and, optionally, its corresponding Gram matrix.
+
+    Parameters
+    ----------
+    n : int
+        The number of variables in the polynomial.
+    d : int
+        The half-degree of the polynomial (the SOS polynomial has total degree 2d).
+    qty : int
+        The number of component polynomials whose squared sum forms the final SOS polynomial.
+    indices_matrix : numpy.ndarray
+        The index mapping that encodes the linear relationships among polynomial coefficients.
+    full : bool, optional, default=False
+        If True, returns the Gram matrices along with the generated coefficients.
+        If False, only the final coefficient vector of the SOS polynomial is returned.
+
+    Returns
+    -------
+    gfinal : numpy.ndarray
+        The vector of coefficients of the resulting SOS polynomial.
+    array_coeffs_basis1 : numpy.ndarray, optional
+        The array of coefficients of each polynomial component (only if `full=True`).
+    Q : numpy.ndarray, optional
+        The corresponding Gram matrices of the SOS polynomial (only if `full=True`).
+
+    Notes
+    -----
+    The generated SOS polynomial has the form:
+        f(x) = ∑_{i=1}^{qty} (p_i(x))²,
+    where each p_i(x) is a randomly generated polynomial of degree ≤ d.
+
+    Examples
+    --------
+    >>> n, d, qty = 3, 2, 2
+    >>> gfinal = general_sos(n, d, qty, indices_matrix)
+    >>> gfinal, coeffs, Q = general_sos(n, d, qty, indices_matrix, full=True)
+    """
 
     dim1 = len(indices_matrix)
     dim2 = indices_matrix[-1, -1] + 1
