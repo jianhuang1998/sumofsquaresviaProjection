@@ -1,3 +1,7 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+
 import tables as tb
 import numpy as np
 import time
@@ -9,6 +13,39 @@ class ExperimentResult(tb.IsDescription):
 
 
 def Experiment_dimension_rank(filename, poly_set, projection, Ex_times=100, maxiter=500):
+    """
+    Conduct comprehensive experiments to evaluate different projection-based algorithms
+    for verifying sum-of-squares (SOS) polynomials under various configurations.
+
+    Parameters
+    ----------
+    filename : str
+        The name of the file used to save the experimental results.
+    poly_set : list of tuples
+        A list specifying the configurations of the SOS polynomials to be tested.
+        Each tuple should contain (n, d, q), where `n` is the number of variables,
+        `d` is the polynomial degree, and `q` is the number of SOS terms.
+    projection : list of str
+        The projection algorithms defined in `projection.py` to be evaluated.
+    Ex_times : int
+        Number of repeated tests for each polynomial configuration and each projection algorithm.
+    maxiter : int
+        Maximum number of iterations allowed for each projection algorithm.
+
+    Returns
+    -------
+    None
+        This function does not return any value. 
+        It generates and saves a result file containing all experimental outcomes.
+
+    Examples
+    --------
+    >>> create_filename = "20250916_effect_of_rank"
+    >>> poly_set = [(10, 4, 1), (10, 4, 2), (10, 4, 3)]
+    >>> projection = ["APTR", "lazyAP", "APFR", "lazyAPFR"]
+    >>> Experiment_dimension_rank(create_filename, poly_set, projection,
+    ...                           Ex_times=100, maxiter=1000)
+    """    
     file = tb.open_file(filename, mode="w")
     kwargs = {}
     for poly in poly_set:
@@ -22,7 +59,7 @@ def Experiment_dimension_rank(filename, poly_set, projection, Ex_times=100, maxi
         dim = len(indices_matrix)
         proj_vector_space_V = make_proj_vector_space_SOS(indices_matrix, nb_parts)
 
-        all_g = [general_sos(poly_var, poly_deg, poly_term, indices_matrix) for _ in range(Ex_times)]  # 生成 100 个不同的数据
+        all_g = [general_sos(poly_var, poly_deg, poly_term, indices_matrix) for _ in range(Ex_times)] 
         coeff_SOS = file.create_vlarray(poly_group, f"coeff_SOS{poly_var}_{poly_deg}_{poly_term}", tb.Float64Atom())
         for proj in projection:
             table = file.create_table(group, f"{proj}_table_results", ExperimentResult, f"{proj} table result")
@@ -79,12 +116,11 @@ def Experiment_dimension_rank(filename, poly_set, projection, Ex_times=100, maxi
                         list_data.append((data[-1])[np.newaxis, :, :])
                     except Exception as e:
                         row = table.row
-                        row["CPU_time"] = -1  # 代表失败
+                        row["CPU_time"] = -1  
                         row["End_iterater"] = -1
                         row["is_success"] = False
                         row.append()
 
-                        # 用空的或无效的数据占位
                         list_neg_least_ev.append(np.array([]))
                         list_data.append(np.zeros((1, len(basis1), len(basis1)))[np.newaxis, :, :])
             table.flush()
