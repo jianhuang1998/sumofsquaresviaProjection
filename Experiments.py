@@ -26,7 +26,7 @@ def Experiment_dimension_rank(filename, poly_set, projections, Ex_times=100, max
         Each tuple should contain (n, d, q), where `n` is the number of variables,
         `d` is the polynomial degree, and `q` is the number of SOS terms.
     projections : list of str
-        The projection algorithms defined in `projection.py` to be evaluated.
+        The projection algorithms defined in `projections.py` to be evaluated.
     Ex_times : int
         Number of repeated tests for each polynomial configuration and each projection algorithm.
     maxiter : int
