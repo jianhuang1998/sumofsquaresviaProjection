@@ -36,6 +36,7 @@ def project_to_linear_space(Q, g, indices_matrix, nb_parts,full = None):
         The vector of coefficients corresponding to the SOS polynomial.
     indices_matrix : numpy.ndarray
         The index mapping that encodes the linear relationships among polynomial coefficients.
+        Part of the output of the function auxiliary(n, d)
     nb_parts : int
         The number of partitions used for averaging in the projection process.
     full : bool, optional, default=False
@@ -133,6 +134,36 @@ def dictionary_basis(basis):
 
 # DEFINES THE AUXILIARY ELEMENTS.
 def auxiliary(n, d, dic_nb={}):
+  """
+Generate auxiliary data required for SOS polynomial construction and projection.
+
+This function prepares the polynomial bases, mapping dictionaries, 
+an index matrix for Gram matrix construction, and partition counts used in projections.
+
+Parameters
+----------
+n : int
+    Number of variables in the polynomial.
+d : int
+    Degree of the SOS polynomial (each term will have degree up to 2*d in the Gram representation).
+dic_nb : dict, optional
+    A dictionary for specifying the number of partitions for certain monomials (default is empty).
+
+Returns
+-------
+basis1 : list
+    List of multi-indices representing the monomial basis of degree <= d.
+basis2 : list
+    List of multi-indices representing the monomial basis of degree <= 2*d.
+d1 : dict
+    Dictionary mapping basis1 monomials to their indices.
+d2 : dict
+    Dictionary mapping basis2 monomials to their indices.
+indices_matrix : numpy.ndarray
+    The index mapping that encodes the linear relationships among polynomial coefficients.
+nb_parts : list
+    List containing the number of partitions for each monomial in basis2, used in projection calculations.
+"""
     basis1 = generate_polynomial_basis(d, n)
     basis2 = generate_polynomial_basis(2 * d, n)
     d1 = dictionary_basis(basis1)
@@ -198,6 +229,7 @@ def general_sos(n, d, qty, indices_matrix, full=False):
         The number of component polynomials whose squared sum forms the final SOS polynomial.
     indices_matrix : numpy.ndarray
         The index mapping that encodes the linear relationships among polynomial coefficients.
+        Part of the output of the function auxiliary(n, d)
     full : bool, optional, default=False
         If True, returns the Gram matrices along with the generated coefficients.
         If False, only the final coefficient vector of the SOS polynomial is returned.
