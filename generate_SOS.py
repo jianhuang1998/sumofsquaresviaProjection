@@ -4,12 +4,12 @@ associated auxiliary data for projecting onto the affine subspace corresponding 
 
 Functions:
 
-* `general_sos`: Generates an SOS polynomial `f` in `n` variables of degree `2*d` with a specified number of terms. Coefficients are drawn from a uniform distribution by default, but can also be specified manually.
+* `general_sos`: Generates an SOS polynomial `g` in `n` variables of degree `2*d` with a specified number of terms. Coefficients are drawn from a uniform distribution by default, but can also be specified manually.
 
-* `project_to_linear_space`: Project onto the affine subspace V(f),
+* `project_to_linear_space`: Project onto the affine subspace V(g),
   corresponding to the system Ax = b.
 
-* `make_proj_vector_space_SOS`: Project onto the linear subspace spanned by the monomials of f,
+* `make_proj_vector_space_SOS`: Project onto the linear subspace spanned by the monomials of g,
   corresponding to the homogeneous system Ax = 0.
 """
 
@@ -20,12 +20,12 @@ from numpy import *
 
 def project_to_linear_space(Q, g, indices_matrix, nb_parts,full = None):
     """
-    Project a given symmetric matrix Q onto the affine subspace V(f) 
+    Project a given symmetric matrix Q onto the affine subspace V(g) 
     defined by the coefficient constraints of a sum-of-squares (SOS) polynomial.
 
     This function computes the orthogonal projection of the input matrix `Q` 
     onto the affine subspace corresponding to the SOS polynomial, as defined by 
-    the linear equality constraints ⟨Q, B_α⟩ = f_α. 
+    the linear equality constraints ⟨Q, B_α⟩ = g_α. 
     It serves as a core component in verifying SOS polynomial conditions via projection-based methods.
 
     Parameters
@@ -52,7 +52,7 @@ def project_to_linear_space(Q, g, indices_matrix, nb_parts,full = None):
     Notes
     -----
     The affine subspace V(f) is defined as:
-        V(f) = { Q ∈ S^{s(n,d)} | ⟨Q, B_α⟩ = f_α, ∀ α ∈ N_{2d}^n }.
+        V(f) = { Q ∈ S^{s(n,d)} | ⟨Q, B_α⟩ = g_α, ∀ α ∈ N_{2d}^n }.
     """
     BQ = np.zeros_like(g)
     for i, row in enumerate(indices_matrix):# Never twice the same index on a row
@@ -214,7 +214,7 @@ def general_sos(n, d, qty, indices_matrix, full=False):
     Notes
     -----
     The generated SOS polynomial has the form:
-        f(x) = ∑_{i=1}^{qty} (p_i(x))²,
+        g(x) = ∑_{i=1}^{qty} (p_i(x))²,
     where each p_i(x) is a randomly generated polynomial of degree ≤ d.
 
     Examples
