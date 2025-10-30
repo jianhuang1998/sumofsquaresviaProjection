@@ -46,9 +46,9 @@ import scipy.optimize as SO
 import scipy.sparse.linalg as SSL
 # import piqp
 import random
-import cvxpy as cp
-from types import SimpleNamespace
-import random
+# import cvxpy as cp
+# from types import SimpleNamespace
+# import random
 import time
 import sympy as sp
 from SumOfSquares import SOSProblem, poly_opt_prob
