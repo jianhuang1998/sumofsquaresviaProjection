@@ -3,7 +3,8 @@
 
 Projection-based methods for verifying sum-of-squares (SOS) polynomials.
 
-**Dependencies:** `numpy (1.26.4), scipy (1.13.1), tables (3.9.1), sympy (1.13.1), SumOfSquares (1.3.1)`
+**Dependencies for projection methods:** `numpy (1.26.4), scipy (1.13.1)`
+**Extra dependencies for simulations in article:** `tables (3.9.1), sympy (1.13.1), SumOfSquares (1.3.1), MOSEK (10.1.13)`
 
 The experiments are organized as follows:
 * `generate_SOS.py` — generates SOS polynomials and constructs the operator for projection onto the affine subspace.
