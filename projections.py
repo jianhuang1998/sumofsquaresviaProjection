@@ -2,14 +2,17 @@
 Projection-based methods for verifying SOS polynomials.
 
 Available methods:
-* 'HIP_switch'             : Hyperplane Intersection Projection (HIP) with mode switching between pure HIP and alternating projection (AP).
+* 'HIPswitch'             : Hyperplane Intersection Projection (HIP) with mode switching between pure HIP and alternating projection (AP).
 * 'oneHIP_AP'              : Hybrid approach; performs a few HIP steps followed by AP steps.
 * 'pureHIP'                : Pure HIP method without switching or AP.
-* 'AP_rank_nlev'           : Alternating Projection with truncated rank (APTR).
-* 'lazy_AP_rank_nlev'      : Extrapolated version of APTR (extraAPTR).
-* 'AP_fixed_rank_beta'     : Alternating Projection with fixed rank (APFR).
-* 'lazy_AP_fixed_rank_beta': Extrapolated version of APFR (extraAPFR).
+* 'APTR'           : Alternating Projection with truncated rank (APTR).
+* 'extraAPTR'      : Extrapolated version of APTR (extraAPTR).
+* 'APFR'     : Alternating Projection with fixed rank (APFR).
+* 'extraAPFR': Extrapolated version of APFR (extraAPFR).
 * 'mosek'                  : Semidefinite programming solver Mosek.
+* 'oneHIP'              : one Hyperplane Intersection Projection, oneHIP_AP with 0 APsteps.
+* 'AP'                  : Alternating Projection.
+* 'Dykatra'                  : Dykatra Projection.
 
 This function implements a projection scheme to verify whether a polynomial
 is SOS by solving the semidefinite feasibility problem via iterative projections.
@@ -47,6 +50,8 @@ import cvxpy as cp
 from types import SimpleNamespace
 import random
 import time
+import sympy as sp
+from SumOfSquares import SOSProblem, poly_opt_prob
 
 import numpy as np#function necessary
 import math
@@ -78,37 +83,56 @@ def step2(XW, target):
 
 
 def step_new(XW, target):
-    nb_active = XW.shape[0]
-    subset = N.array([nb_active - 1])
-    coeffs = [target[-1] / XW[-1, -1]]  # Always positive
+    sq_norm_xn = target[-1]
+    nb_active = XW.shape[0]###
+    subset = [nb_active - 1]
+    coeffs = [sq_norm_xn / XW[-1, -1]] # Always positive $\Vert x_n \Vert^2/(x_i(or w_i)@w_i)$
     for i in range(nb_active - 2, -1, -1):
-        #         if (N.all(XW[i, subset] <= 0)):###new test condition
-        # test = (XW[i, subset].dot(coeffs) < target[i])
-        # The condition to project on the intersection of the hyperplanes is that
-        # all the coefficients are non-negative. This is equivalent to belonging
-        # to the normal cone to the facet.
-        # if test:
-        subseti = N.r_[i, subset]
-        coeffsi = SL.inv(XW[N.ix_(subset, subset)]).dot(target[subset])
-        if N.all(array(coeffs) >= 0):
-            subset = subseti
-            coeffs = coeffsi
-            # Adding a new hyperplane might generate negative coefficients.
-            # We remove the corresponding hyperplanes, except if it is the last
-            # hyperplane, in which case we do not add the hyperplane.
-            # if coeffs[-1] < 0:
-            #     subset = subset[1:]
-            #     coeffs = SL.inv(XW[N.ix_(subset, subset)]).dot(target[subset])
-        elif not N.all(coeffs >= 0):
-            subset = subset[N.where(coeffs >= 0)]
-            coeffs = SL.inv(XW[N.ix_(subset, subset)]).dot(target[subset])
-
-    # assert N.all(array(coeffs) >= 0)####break here
-
+        #XW[i, subset] <= 0 from Corollary 5.13.5
+        #test = (XW[i, subset].dot(coeffs) < 0)#######Corollary 5.13.5 Iterative methods for fixed point problem in HP
+        if (N.all(XW[i, subset] <= 0)):
+            subset = [i] + subset
+            coeffs = la(XW[N.ix_(subset, subset)], sq_norm_xn) # Always positive ??? Vérifier
+            assert N.all(coeffs >= 0)
     return subset, coeffs
+def la(XWb, sq_norm_xn):
+    target = N.zeros((XWb.shape[0],))
+    target[-1] = sq_norm_xn
+    return SL.inv(XWb).dot(target) 
+    
+
+# def step_new(XW, target):
+#     nb_active = XW.shape[0]
+#     subset = N.array([nb_active - 1])
+#     coeffs = [target[-1] / XW[-1, -1]]  # Always positive
+#     for i in range(nb_active - 2, -1, -1):
+#         #         if (N.all(XW[i, subset] <= 0)):###new test condition
+#         # test = (XW[i, subset].dot(coeffs) < target[i])
+#         # The condition to project on the intersection of the hyperplanes is that
+#         # all the coefficients are non-negative. This is equivalent to belonging
+#         # to the normal cone to the facet.
+#         # if test:
+#         subseti = N.r_[i, subset]
+#         coeffsi = SL.inv(XW[N.ix_(subset, subset)]).dot(target[subset])
+#         if N.all(array(coeffs) >= 0):
+#             subset = subseti
+#             coeffs = coeffsi
+#             # Adding a new hyperplane might generate negative coefficients.
+#             # We remove the corresponding hyperplanes, except if it is the last
+#             # hyperplane, in which case we do not add the hyperplane.
+#             # if coeffs[-1] < 0:
+#             #     subset = subset[1:]
+#             #     coeffs = SL.inv(XW[N.ix_(subset, subset)]).dot(target[subset])
+#         elif not N.all(coeffs >= 0):
+#             subset = subset[N.where(coeffs >= 0)]
+#             coeffs = SL.inv(XW[N.ix_(subset, subset)]).dot(target[subset])
+
+#     # assert N.all(array(coeffs) >= 0)####break here
+
+#     return subset, coeffs
 
 
-def HIP_switch(p, proj_vector_space_V, proj_0_on_V, max_mem_w = 30, min_cos =.99, maxiter=300, tol=1e-8)  :  # 7_30
+def HIPswitch(p, proj_vector_space_V, proj_0_on_V, max_mem_w = 30, min_cos =.99, maxiter=300, tol=1e-8)  :  # 7_30
     nlevs = []
     ps = []
     dim = len(p)
@@ -155,9 +179,10 @@ def HIP_switch(p, proj_vector_space_V, proj_0_on_V, max_mem_w = 30, min_cos =.99
                 nb_actives = 1
                 XW = N.array([[norm_w**2]])
                 w_act = N.array([w_new])
-                target = N.array([SL.norm(p - APk)**2 / norm_w**2])
-                coeffs = N.array([0.])
+                coeffs = N.array([SL.norm(p - APk)**2 / norm_w**2])
+                target = N.array([0.])
                 p += coeffs[0] * w_new
+                p = proj_0_on_V + proj_vector_space_V(p)
             else:
                 p = best_APk
                 # active = N.array([])
@@ -198,11 +223,13 @@ def HIP_switch(p, proj_vector_space_V, proj_0_on_V, max_mem_w = 30, min_cos =.99
             # lost_w = w_act[0] / SL.norm(w_act[0])
             target = N.zeros((nb_actives,))
             p = p + N.einsum('k, kij -> ij', coeffs, w_act)
+            p = proj_0_on_V + proj_vector_space_V(p)
 
             if (subset[0] != 0) or nb_actives > max_mem_w:
                 sel = 'AP'
                 w_norm_ancien = N.zeros((dim, dim))
     return ps, nlevs
+
 
 
 def oneHIP_AP(p, proj_vector_space_V, proj_0_on_V, oneHIP_steps=15, AP_steps=5, maxiter=300, tol=1e-8):
@@ -251,7 +278,6 @@ def pureHIP(p, proj_vector_space_V, proj_0_on_V, maxiter=300, tol=1e-8):
     active = N.array([])
     nb_actives = 0
     XW = N.zeros((0, 0))
-    # lost_w = N.zeros(dims)
     w_act = N.zeros([0, dim, dim])
     target = N.array([])
     coeffs = N.array([])
@@ -295,9 +321,10 @@ def pureHIP(p, proj_vector_space_V, proj_0_on_V, maxiter=300, tol=1e-8):
         # lost_w = w_act[0] / SL.norm(w_act[0])
         target = N.zeros((nb_actives,))
         p = p + N.einsum('k, kij -> ij', coeffs, w_act)
+        p = proj_0_on_V + proj_vector_space_V(p)
     return ps, nlevs
 
-def AP_rank_nlev(p, proj_vector_space_V, proj_0_on_V, maxiter=300, tol=1e-8):#APTR
+def APTR(p, proj_vector_space_V, proj_0_on_V, maxiter=300, tol=1e-8):#APTR
     nlevs = []
     ps = []
 
@@ -329,8 +356,55 @@ def AP_rank_nlev(p, proj_vector_space_V, proj_0_on_V, maxiter=300, tol=1e-8):#AP
 
     return ps, nlevs
 
+def AP(p, proj_vector_space_V, proj_0_on_V, maxiter=300, tol=1e-8):#AP
+    nlevs = []
+    ps = []
 
-def lazy_AP_rank_nlev(p, proj_vector_space_V, proj_0_on_V, maxiter=300, tol=1e-8, partial_step=.9):
+    p = proj_0_on_V + proj_vector_space_V(p)
+
+    for j in range(maxiter):
+        print(j)
+        eigvals, eigvecs = SL.eigh(p)
+
+        neg_least_ev = - eigvals[0]
+        print(neg_least_ev)
+        ps.append(p)
+        nlevs.append(neg_least_ev)
+        if neg_least_ev < tol:
+            break
+        rank = (eigvals > 0).sum()
+        APk = (eigvals[-rank:] * eigvecs[:, -rank:]) @ eigvecs[:, -rank:].conj().T
+        p = proj_0_on_V + proj_vector_space_V(APk)
+    ps.append(p)
+
+    return ps, nlevs
+
+def Dykstra(p, proj_vector_space_V, proj_0_on_V, maxiter=300, tol=1e-8):#AP
+    nlevs = []
+    ps = []
+
+    p = proj_0_on_V + proj_vector_space_V(p)
+    correction = 0
+    for j in range(maxiter):
+        print(j)
+        eigvals, eigvecs = SL.eigh(p)
+
+        neg_least_ev = - eigvals[0]
+        print(neg_least_ev)
+        ps.append(p)
+        nlevs.append(neg_least_ev)
+        if neg_least_ev < tol:
+            break
+        eigvals, eigvecs = SL.eigh(p + correction)
+        rank = (eigvals > 0).sum()
+        APk = (eigvals[-rank:] * eigvecs[:, -rank:]) @ eigvecs[:, -rank:].conj().T
+        correction += p - APk
+        p = proj_0_on_V + proj_vector_space_V(APk)
+    ps.append(p)
+
+    return ps, nlevs
+
+def extraAPTR(p, proj_vector_space_V, proj_0_on_V, maxiter=300, tol=1e-8, partial_step=.9):
     nlevs = []
     ps = []
 
@@ -374,7 +448,7 @@ def lazy_AP_rank_nlev(p, proj_vector_space_V, proj_0_on_V, maxiter=300, tol=1e-8
     return ps, nlevs
 
 
-def AP_fixed_rank_beta(p, proj_vector_space_V, proj_0_on_V, fixed_rank=1, maxiter=300, tol=1e-8):
+def APFR(p, proj_vector_space_V, proj_0_on_V, fixed_rank=1, maxiter=300, tol=1e-8):
 
     nlevs = []
     ps = []
@@ -404,7 +478,7 @@ def AP_fixed_rank_beta(p, proj_vector_space_V, proj_0_on_V, fixed_rank=1, maxite
     return ps, nlevs
 
 
-def lazy_AP_fixed_rank_beta(p, proj_vector_space_V, proj_0_on_V, fixed_rank=1, cos=0.99, maxiter=300, tol=1e-8):  # 7_30
+def extraAPFR(p, proj_vector_space_V, proj_0_on_V, fixed_rank=1, cos=0.99, maxiter=300, tol=1e-8):  # 7_30
 
     nlevs = []
     ps = []

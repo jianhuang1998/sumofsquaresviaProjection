@@ -134,7 +134,7 @@ def dictionary_basis(basis):
 
 # DEFINES THE AUXILIARY ELEMENTS.
 def auxiliary(n, d, dic_nb={}):
-  """
+    """
 Generate auxiliary data required for SOS polynomial construction and projection.
 
 This function prepares the polynomial bases, mapping dictionaries, 
@@ -163,7 +163,7 @@ indices_matrix : numpy.ndarray
     The index mapping that encodes the linear relationships among polynomial coefficients.
 nb_parts : list
     List containing the number of partitions for each monomial in basis2, used in projection calculations.
-"""
+    """
     basis1 = generate_polynomial_basis(d, n)
     basis2 = generate_polynomial_basis(2 * d, n)
     d1 = dictionary_basis(basis1)
