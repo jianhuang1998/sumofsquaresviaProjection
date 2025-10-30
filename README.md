@@ -4,6 +4,7 @@
 Projection-based methods for verifying sum-of-squares (SOS) polynomials.
 
 **Dependencies for projection methods:** `numpy (1.26.4), scipy (1.13.1)`
+
 **Extra dependencies for simulations in article:** `tables (3.9.1), sympy (1.13.1), SumOfSquares (1.3.1), MOSEK (10.1.13)`
 
 The experiments are organized as follows:
